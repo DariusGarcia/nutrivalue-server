@@ -1,6 +1,6 @@
 const dotenv = require('dotenv')
 dotenv.config({ path: './.env.local' })
-const cors = require('cors')
+var cors = require('cors')
 const express = require('express')
 const session = require('express-session')
 // const limiter = require('./middleware/rateLimiter')
@@ -9,7 +9,10 @@ const sequelize = require('./config/connection')
 const SequelizeStore = require('connect-session-sequelize')(session.Store)
 const app = express()
 
-app.use(cors())
+let corsOptions = {
+  origin: ['http://localhost:3001', 'http://localhost:3000'],
+}
+app.use(cors(corsOptions))
 
 const PORT = Number(process.env.PORT) || 4002
 
