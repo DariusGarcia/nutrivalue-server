@@ -1,22 +1,37 @@
 const userRouter = require('express').Router()
 const { User } = require('../models')
+const jwt = require('jsonwebtoken')
+
+// fetch all users
+userRouter.get('/allUsers', async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: { exclude: ['password'] }, // Specify the column you want to exclude
+      include: 'meals',
+    })
+    res.status(200).json(users)
+  } catch (err) {
+    res.status(500).json(err)
+  }
+})
 
 // CREATE new user
 userRouter.post('/signup', async (req, res) => {
   const password = req.body.password
   const username = req.body.username
   try {
+    // check if the user with the given email already exists
+    const existingUser = await User.findOne({ where: { username } })
+    if (existingUser) {
+      return res.status(409).json({ error: 'User already exists' })
+    }
+
     const newUser = await User.create({
       username: username,
       password: password,
     })
-    // save user info to server-side session storage
-    req.session.save(() => {
-      req.session.userId = newUser.id
-      req.session.username = newUser.username
-      req.session.loggedIn = true
-    })
-    res.json(newUser)
+
+    res.status(200).json(newUser)
   } catch (err) {
     res.status(500).json(err)
   }
@@ -27,43 +42,35 @@ userRouter.post('/login', async (req, res) => {
   const password = req.body.password
   const username = req.body.username
   try {
-    const existingUser = await User.findOne({
+    const user = await User.findOne({
       where: {
         username: username,
       },
     })
-    if (!existingUser) {
+    if (!user) {
       res
         .status(400)
         .json({ message: 'No existing user account found. Please try again.' })
     }
     // check if passwords match
-    const isValidPassword = existingUser.comparePassword(password)
+    const isValidPassword = user.comparePassword(password)
     if (!isValidPassword) {
       res.status(400).json({ message: 'Wrong password.' })
     }
-    // save user info to server-side session storage
-    req.session.save(() => {
-      req.session.userID = existingUser.id
-      req.session.username = existingUser.username
-      req.session.loggedIn = true
-      res.json({ existingUser, message: 'You are now logged in!' })
+    const token = jwt.sign(
+      { id: user.id, username: user.username },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: '7d' }
+    )
+    res.json({
+      id: user.id,
+      username,
+      token: token,
+      message: 'You are now logged in!',
+      loggedIn: true,
     })
   } catch (err) {
     res.status(500)
-  }
-})
-
-// LOGOUT user
-userRouter.post('/logout', (req, res) => {
-  const loggedIn = req.session.loggedIn
-  if (loggedIn) {
-    req.session.loggedIn = false
-    req.session.destroy(() => {
-      res.status(204).end()
-    })
-  } else {
-    res.status(404).end()
   }
 })
 

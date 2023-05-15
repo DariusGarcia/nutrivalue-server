@@ -2,7 +2,6 @@ const dotenv = require('dotenv')
 dotenv.config({ path: './.env.local' })
 const cors = require('cors')
 const express = require('express')
-const path = require('path')
 const session = require('express-session')
 // const limiter = require('./middleware/rateLimiter')
 const routes = require('./controllers')
@@ -23,21 +22,6 @@ process.on('uncaughtException', (err) => {
   console.log('\nNode NOT Exiting...')
 })
 
-// express session options
-const sess = {
-  secret: '74vLqUS50mP4FNlPzfqd42IBnoL34823',
-  cookie: {
-    maxAge: 300000,
-    httpOnly: true,
-    secure: false,
-  },
-  resave: false,
-  saveUninitialized: true,
-  store: new SequelizeStore({ db: sequelize }),
-}
-
-app.use(session(sess))
-
 //  the IP address of the request might be the IP of the load balancer/reverse proxy (making the rate limiter effectively a global one and blocking all requests once the limit is reached) or undefined
 // app.set('trust proxy', 1)
 
@@ -54,8 +38,7 @@ app.use((req, res, next) => {
 })
 
 // Apply the rate limiting middleware to all api requests
-// app.use('/api/stocks', limiter)
-// app.use('/api/watchlist', limiter)
+// app.use('/api/recipes', limiter)
 
 // routes
 app.use(routes)
