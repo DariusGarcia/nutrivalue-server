@@ -11,6 +11,10 @@ Meal.init(
       primaryKey: true,
       autoIncrement: true,
     },
+    category: {
+      type: DataTypes.ENUM('breakfast', 'lunch', 'dinner', 'snack'),
+      allowNull: false,
+    },
     mealName: {
       type: DataTypes.STRING,
       allowNull: false,

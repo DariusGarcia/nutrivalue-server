@@ -1,10 +1,22 @@
 const mealRouter = require('express').Router()
-const { Meal } = require('../models')
-
+const { Meal, User } = require('../models')
+const jwt = require('jsonwebtoken')
 // READ all meals
 mealRouter.get('/', async (req, res) => {
+  const token = req.headers.authorization // Assuming the token is provided in the Authorization header
+
+  if (!token) {
+    return res.status(401).json({ message: 'Missing token' })
+  }
+
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY)
+  const userId = decodedToken.id
+  const user = await User.findByPk(userId) // Retrieve the user instance by their ID
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' })
+  }
   try {
-    const meals = await Meal.findAll()
+    const meals = await Meal.findAll({ where: { userId: userId } })
     res.status(200).json(meals)
   } catch (err) {
     res.status(500).json(err)
@@ -13,10 +25,23 @@ mealRouter.get('/', async (req, res) => {
 
 // CREATE new meal
 mealRouter.post('/', async (req, res) => {
-  const { mealName, protein, carbs, fats, calories } = req.body
+  const { mealName, protein, carbs, fats, calories, category } = req.body
+  const token = req.headers.authorization // Assuming the token is provided in the Authorization header
+
+  if (!token) {
+    return res.status(401).json({ message: 'Missing token' })
+  }
+
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY)
+  const userId = decodedToken.id
+  const user = await User.findByPk(userId) // Retrieve the user instance by their ID
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' })
+  }
   try {
-    const newMeal = await Meal.create({
+    const newMeal = await user.createMeal({
       mealName: mealName,
+      category: category,
       protein: protein,
       carbs: carbs,
       fats: fats,
@@ -31,7 +56,19 @@ mealRouter.post('/', async (req, res) => {
 
 // UPDATE a meal
 mealRouter.put('/:id', async (req, res) => {
+  const token = req.headers.authorization // Assuming the token is provided in the Authorization header
+  if (!token) {
+    return res.status(401).json({ message: 'Missing token' })
+  }
+
   const { mealName, proteins, carbs, fats, calories } = req.body
+
+  const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY)
+  const userId = decodedToken.id
+  const user = await User.findByPk(userId) // Retrieve the user instance by their ID
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' })
+  }
   const mealId = req.params.id
   try {
     const updatedMeal = await Meal.update(
