@@ -9,11 +9,7 @@ const sequelize = require('./config/connection')
 const SequelizeStore = require('connect-session-sequelize')(session.Store)
 const app = express()
 
-app.use(
-  cors({
-    origin: process.env.ORIGIN_URL,
-  })
-)
+app.use(cors())
 
 const PORT = Number(process.env.PORT) || 4002
 
