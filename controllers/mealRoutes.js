@@ -96,20 +96,21 @@ mealRouter.put('/:id', async (req, res) => {
   }
 })
 
-// DELETE a meal
-mealRouter.delete('/:id', async (req, res) => {
-  const mealId = req.params.id
+// DELETE multiple meals
+mealRouter.delete('/', async (req, res) => {
+  const mealIds = req.body.mealIds
+
   try {
-    const deletedMeal = await Meal.destroy({
+    const deletedMeals = await Meal.destroy({
       where: {
-        id: mealId,
+        id: mealIds,
       },
     })
 
-    if (deletedMeal === 0) {
-      res.status(404).json({ message: 'Meal not found' })
+    if (deletedMeals === 0) {
+      res.status(404).json({ message: 'Meals not found' })
     } else {
-      res.status(200).json({ message: 'Meal deleted successfully' })
+      res.status(200).json({ message: 'Meals deleted successfully' })
     }
   } catch (err) {
     res.status(500).json(err)
