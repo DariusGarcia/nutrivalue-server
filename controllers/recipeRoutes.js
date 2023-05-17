@@ -63,7 +63,7 @@ recipeRouter.put('/:id', async (req, res) => {
     return res.status(401).json({ message: 'Missing token' })
   }
 
-  const { mealName, proteins, carbs, fats, calories } = req.body
+  const { image, label, protein, carbs, fats, calories, category } = req.body
 
   const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY)
   const userId = decodedToken.id
@@ -78,8 +78,7 @@ recipeRouter.put('/:id', async (req, res) => {
         image: image,
         label: label,
         category: category,
-        mealName: mealName,
-        proteins: proteins,
+        proteins: protein,
         carbs: carbs,
         fats: fats,
         calories: calories,
