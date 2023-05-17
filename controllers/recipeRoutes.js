@@ -1,9 +1,9 @@
-const mealRouter = require('express').Router()
-const { Meal, User } = require('../models')
+const recipeRouter = require('express').Router()
+const { Recipe, User } = require('../models')
 const jwt = require('jsonwebtoken')
 
 // READ all meals
-mealRouter.get('/', async (req, res) => {
+recipeRouter.get('/', async (req, res) => {
   const token = req.headers.authorization // Assuming the token is provided in the Authorization header
 
   if (!token) {
@@ -17,16 +17,16 @@ mealRouter.get('/', async (req, res) => {
     return res.status(404).json({ message: 'User not found' })
   }
   try {
-    const meals = await Meal.findAll({ where: { userId: userId } })
-    res.status(200).json(meals)
+    const recipes = await Recipe.findAll({ where: { userId: userId } })
+    res.status(200).json(recipes)
   } catch (err) {
     res.status(500).json(err)
   }
 })
 
 // CREATE new meal
-mealRouter.post('/', async (req, res) => {
-  const { mealName, protein, carbs, fats, calories, category } = req.body
+recipeRouter.post('/', async (req, res) => {
+  const { image, label, protein, carbs, fats, calories, category } = req.body
   const token = req.headers.authorization // Assuming the token is provided in the Authorization header
 
   if (!token) {
@@ -40,23 +40,24 @@ mealRouter.post('/', async (req, res) => {
     return res.status(404).json({ message: 'User not found' })
   }
   try {
-    const newMeal = await user.createMeal({
-      mealName: mealName,
+    const newRecipe = await user.createRecipe({
+      label: label,
       category: category,
       protein: protein,
       carbs: carbs,
       fats: fats,
       calories: calories,
+      image: image,
     })
 
-    res.status(200).json(newMeal)
+    res.status(200).json(newRecipe)
   } catch (err) {
     res.status(500).json(err)
   }
 })
 
 // UPDATE a meal
-mealRouter.put('/:id', async (req, res) => {
+recipeRouter.put('/:id', async (req, res) => {
   const token = req.headers.authorization // Assuming the token is provided in the Authorization header
   if (!token) {
     return res.status(401).json({ message: 'Missing token' })
@@ -70,10 +71,13 @@ mealRouter.put('/:id', async (req, res) => {
   if (!user) {
     return res.status(404).json({ message: 'User not found' })
   }
-  const mealId = req.params.id
+  const recipeId = req.params.id
   try {
-    const updatedMeal = await Meal.update(
+    const updatedRecipe = await Recipe.update(
       {
+        image: image,
+        label: label,
+        category: category,
         mealName: mealName,
         proteins: proteins,
         carbs: carbs,
@@ -82,15 +86,15 @@ mealRouter.put('/:id', async (req, res) => {
       },
       {
         where: {
-          id: mealId,
+          id: recipeId,
         },
       }
     )
 
-    if (updatedMeal[0] === 0) {
-      res.status(404).json({ message: 'Meal not found' })
+    if (updatedRecipe[0] === 0) {
+      res.status(404).json({ message: 'Recipe not found' })
     } else {
-      res.status(200).json({ message: 'Meal updated successfully' })
+      res.status(200).json({ message: 'Recipe updated successfully' })
     }
   } catch (err) {
     res.status(500).json(err)
@@ -98,24 +102,24 @@ mealRouter.put('/:id', async (req, res) => {
 })
 
 // DELETE multiple meals
-mealRouter.delete('/', async (req, res) => {
-  const mealIds = req.body.mealIds
+recipeRouter.delete('/', async (req, res) => {
+  const recipeIds = req.body.recipeIds
 
   try {
-    const deletedMeals = await Meal.destroy({
+    const deletedRecipes = await Recipe.destroy({
       where: {
-        id: mealIds,
+        id: recipeIds,
       },
     })
 
-    if (deletedMeals === 0) {
-      res.status(404).json({ message: 'Meals not found' })
+    if (deletedRecipes === 0) {
+      res.status(404).json({ message: 'Recipes not found' })
     } else {
-      res.status(200).json({ message: 'Meals deleted successfully' })
+      res.status(200).json({ message: 'Recipes deleted successfully' })
     }
   } catch (err) {
     res.status(500).json(err)
   }
 })
 
-module.exports = mealRouter
+module.exports = recipeRouter
